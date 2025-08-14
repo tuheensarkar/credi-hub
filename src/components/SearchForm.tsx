@@ -16,10 +16,35 @@ export const SearchForm = ({ onSearch, isLoading = false }: SearchFormProps) => 
   const [leetcode, setLeetcode] = useState("");
   const { toast } = useToast();
 
+  const extractUsername = (input: string, platform: 'github' | 'linkedin' | 'leetcode'): string => {
+    const trimmed = input.trim();
+    if (!trimmed) return '';
+    
+    // Extract username from URLs
+    if (platform === 'github') {
+      const githubMatch = trimmed.match(/(?:https?:\/\/)?(?:www\.)?github\.com\/([^\/\s]+)/);
+      return githubMatch ? githubMatch[1] : trimmed;
+    }
+    
+    if (platform === 'linkedin') {
+      const linkedinMatch = trimmed.match(/(?:https?:\/\/)?(?:www\.)?linkedin\.com\/in\/([^\/\s]+)/);
+      return linkedinMatch ? linkedinMatch[1] : trimmed;
+    }
+    
+    if (platform === 'leetcode') {
+      const leetcodeMatch = trimmed.match(/(?:https?:\/\/)?(?:www\.)?leetcode\.com\/u\/([^\/\s]+)/);
+      return leetcodeMatch ? leetcodeMatch[1] : trimmed;
+    }
+    
+    return trimmed;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!github.trim()) {
+    const githubUsername = extractUsername(github, 'github');
+    
+    if (!githubUsername) {
       toast({
         title: "GitHub username required",
         description: "Please enter at least a GitHub username to continue.",
@@ -29,9 +54,9 @@ export const SearchForm = ({ onSearch, isLoading = false }: SearchFormProps) => 
     }
 
     onSearch({
-      github: github.trim(),
-      linkedin: linkedin.trim(),
-      leetcode: leetcode.trim(),
+      github: githubUsername,
+      linkedin: extractUsername(linkedin, 'linkedin'),
+      leetcode: extractUsername(leetcode, 'leetcode'),
     });
   };
 
