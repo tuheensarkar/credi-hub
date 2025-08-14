@@ -2,41 +2,71 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Professional Developer Credibility Profile Design System */
 
 @layer base {
   :root {
+    /* Professional Color Palette */
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --foreground: 210 11% 15%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 210 11% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 210 11% 15%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Professional Primary - Deep Blue */
+    --primary: 213 94% 68%;
+    --primary-foreground: 0 0% 100%;
+    --primary-dark: 213 94% 58%;
+    --primary-light: 213 94% 78%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Professional Secondary - Slate */
+    --secondary: 210 6% 93%;
+    --secondary-foreground: 210 11% 15%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    /* Muted Professional Tones */
+    --muted: 210 6% 93%;
+    --muted-foreground: 210 6% 46%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* Accent - Professional Teal */
+    --accent: 189 94% 43%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    /* Success & Status Colors */
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+    
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    --radius: 0.5rem;
+    /* Interface Elements */
+    --border: 210 6% 90%;
+    --input: 210 6% 97%;
+    --ring: 213 94% 68%;
+
+    /* Professional Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(213 94% 68%), hsl(189 94% 43%));
+    --gradient-secondary: linear-gradient(135deg, hsl(210 6% 97%), hsl(210 6% 93%));
+    --gradient-hero: linear-gradient(135deg, hsl(213 94% 68%) 0%, hsl(189 94% 43%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(210 6% 98%) 100%);
+
+    /* Professional Shadows */
+    --shadow-sm: 0 1px 3px 0 hsl(210 6% 46% / 0.1);
+    --shadow-md: 0 4px 12px -1px hsl(210 6% 46% / 0.15);
+    --shadow-lg: 0 10px 25px -3px hsl(210 6% 46% / 0.1);
+    --shadow-xl: 0 25px 50px -12px hsl(213 94% 68% / 0.25);
+
+    /* Professional Animations */
+    --transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+
+    --radius: 0.75rem;
 
     --sidebar-background: 0 0% 98%;
 
