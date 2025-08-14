@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Header } from "@/components/Header";
 import { HeroSection } from "@/components/HeroSection";
@@ -5,11 +6,15 @@ import { SearchForm } from "@/components/SearchForm";
 import { ProfileDashboard } from "@/components/ProfileDashboard";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { githubService, GitHubStats } from "@/services/githubService";
+import { linkedinService, LinkedInProfile } from "@/services/linkedinService";
+import { leetcodeService, LeetCodeStats } from "@/services/leetcodeService";
 import { aiService, ProfileSummary } from "@/services/aiService";
 import { useToast } from "@/hooks/use-toast";
 
 interface UserData {
   github: GitHubStats;
+  linkedin?: LinkedInProfile;
+  leetcode?: LeetCodeStats;
   aiSummary: ProfileSummary;
 }
 
@@ -22,26 +27,65 @@ const Index = () => {
     setIsLoading(true);
     
     try {
-      // Fetch GitHub data
-      const githubData = await githubService.getCompleteStats(usernames.github);
+      console.log('Fetching data for:', usernames);
       
-      // Generate AI summary
-      const aiSummary = await aiService.generateProfileSummary(githubData);
+      // Fetch GitHub data (required)
+      const githubData = await githubService.getCompleteStats(usernames.github);
+      console.log('GitHub data fetched:', githubData);
+      
+      // Fetch LinkedIn data (optional)
+      let linkedinData: LinkedInProfile | undefined;
+      if (usernames.linkedin) {
+        try {
+          linkedinData = await linkedinService.getPublicProfile(usernames.linkedin);
+          console.log('LinkedIn data fetched:', linkedinData);
+        } catch (error) {
+          console.warn('LinkedIn data fetch failed:', error);
+          toast({
+            title: "LinkedIn Data Unavailable",
+            description: "Continuing with GitHub data only.",
+            variant: "default",
+          });
+        }
+      }
+      
+      // Fetch LeetCode data (optional)
+      let leetcodeData: LeetCodeStats | undefined;
+      if (usernames.leetcode) {
+        try {
+          leetcodeData = await leetcodeService.getUserStats(usernames.leetcode);
+          console.log('LeetCode data fetched:', leetcodeData);
+        } catch (error) {
+          console.warn('LeetCode data fetch failed:', error);
+          toast({
+            title: "LeetCode Data Unavailable", 
+            description: "Continuing with available data.",
+            variant: "default",
+          });
+        }
+      }
+      
+      // Generate AI summary with all available data
+      console.log('Generating AI summary...');
+      const aiSummary = await aiService.generateProfileSummary(githubData, linkedinData, leetcodeData);
+      console.log('AI summary generated:', aiSummary);
       
       setUserData({
         github: githubData,
+        linkedin: linkedinData,
+        leetcode: leetcodeData,
         aiSummary,
       });
 
       toast({
         title: "Profile Generated Successfully!",
-        description: "Your professional developer profile is ready.",
+        description: `Your professional developer profile is ready${linkedinData ? ' with LinkedIn data' : ''}${leetcodeData ? ' and LeetCode stats' : ''}.`,
       });
     } catch (error) {
       console.error('Error generating profile:', error);
       toast({
         title: "Error Generating Profile",
-        description: "Please check the username and try again.",
+        description: "Please check the usernames and try again.",
         variant: "destructive",
       });
     } finally {
@@ -57,12 +101,23 @@ const Index = () => {
   };
 
   const handleShare = () => {
-    const url = window.location.href;
-    navigator.clipboard.writeText(url);
-    toast({
-      title: "Link Copied!",
-      description: "Profile link has been copied to clipboard.",
-    });
+    if (userData) {
+      const shareData = {
+        title: `${userData.github.user.name || userData.github.user.login} - Developer Profile`,
+        text: userData.aiSummary.headline,
+        url: window.location.href,
+      };
+      
+      if (navigator.share) {
+        navigator.share(shareData);
+      } else {
+        navigator.clipboard.writeText(window.location.href);
+        toast({
+          title: "Link Copied!",
+          description: "Profile link has been copied to clipboard.",
+        });
+      }
+    }
   };
 
   if (isLoading) {
@@ -73,6 +128,8 @@ const Index = () => {
     return (
       <ProfileDashboard
         githubData={userData.github}
+        linkedinData={userData.linkedin}
+        leetcodeData={userData.leetcode}
         aiSummary={userData.aiSummary}
         onExport={handleExport}
         onShare={handleShare}
@@ -111,9 +168,9 @@ const Index = () => {
               <div className="w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-white text-2xl">⚡</span>
               </div>
-              <h3 className="text-xl font-semibold mb-2">Instant Generation</h3>
+              <h3 className="text-xl font-semibold mb-2">Multi-Platform Analysis</h3>
               <p className="text-muted-foreground">
-                Create comprehensive developer profiles in seconds, not hours. Just enter your username and go.
+                Combines GitHub, LinkedIn, and LeetCode data for comprehensive developer credibility assessment.
               </p>
             </div>
             

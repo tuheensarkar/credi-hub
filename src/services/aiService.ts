@@ -1,3 +1,4 @@
+
 const GROQ_API_KEY = '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';
 
 export interface ProfileSummary {
@@ -6,6 +7,8 @@ export interface ProfileSummary {
   keySkills: string[];
   highlights: string[];
   professionalLevel: 'Junior' | 'Mid-Level' | 'Senior' | 'Lead' | 'Principal';
+  strengthAreas: string[];
+  careerTrajectory: string;
 }
 
 class AIService {
@@ -20,7 +23,7 @@ class AIService {
         model: 'llama3-8b-8192',
         messages,
         temperature: 0.7,
-        max_tokens: 1000,
+        max_tokens: 1200,
       }),
     });
 
@@ -34,7 +37,7 @@ class AIService {
 
   async generateProfileSummary(githubData: any, linkedinData?: any, leetcodeData?: any): Promise<ProfileSummary> {
     const prompt = `
-    You are a professional recruiter and technical writer. Based on the following developer data, create a comprehensive professional summary.
+    You are a professional recruiter and technical writer. Based on the following developer data, create a comprehensive professional summary that highlights the candidate's strengths and credibility.
 
     GitHub Data:
     - Name: ${githubData.user.name || githubData.user.login}
@@ -47,26 +50,52 @@ class AIService {
     - Total Forks: ${githubData.totalForks}
     - Years Contributing: ${githubData.contributionYears}
     - Top Languages: ${Object.keys(githubData.languages).slice(0, 5).join(', ')}
-    - Top Repositories: ${githubData.repos.slice(0, 3).map((r: any) => `${r.name} (${r.stargazers_count} stars)`).join(', ')}
+    - Top Repositories: ${githubData.repos.slice(0, 3).map((r: any) => `${r.name} (${r.stargazers_count} stars, ${r.language || 'Mixed'})`).join(', ')}
 
-    ${linkedinData ? `LinkedIn Data: ${JSON.stringify(linkedinData, null, 2)}` : ''}
-    ${leetcodeData ? `LeetCode Data: ${JSON.stringify(leetcodeData, null, 2)}` : ''}
+    ${linkedinData ? `
+    LinkedIn Data:
+    - Name: ${linkedinData.name}
+    - Headline: ${linkedinData.headline}
+    - Location: ${linkedinData.location}
+    - Experience: ${linkedinData.experience.length} positions
+    - Skills: ${linkedinData.skills.slice(0, 10).join(', ')}
+    - Certifications: ${linkedinData.certifications.length} certifications
+    ` : 'LinkedIn data not available'}
+
+    ${leetcodeData ? `
+    LeetCode Data:
+    - Problems Solved: ${leetcodeData.problemsSolved.solvedProblem}/${leetcodeData.problemsSolved.totalProblem}
+    - Easy: ${leetcodeData.problemsSolved.easySolved}/${leetcodeData.problemsSolved.totalEasy}
+    - Medium: ${leetcodeData.problemsSolved.mediumSolved}/${leetcodeData.problemsSolved.totalMedium}
+    - Hard: ${leetcodeData.problemsSolved.hardSolved}/${leetcodeData.problemsSolved.totalHard}
+    - Contest Rating: ${leetcodeData.contestRating}
+    - Global Ranking: ${leetcodeData.contestRanking}
+    ` : 'LeetCode data not available'}
 
     Please provide a JSON response with the following structure:
     {
-      "headline": "A compelling 1-2 line professional headline",
-      "summary": "A 3-4 sentence professional summary highlighting key achievements and expertise",
-      "keySkills": ["skill1", "skill2", "skill3", "skill4", "skill5"],
-      "highlights": ["achievement1", "achievement2", "achievement3"],
-      "professionalLevel": "Junior|Mid-Level|Senior|Lead|Principal"
+      "headline": "A compelling 1-2 line professional headline that captures their expertise",
+      "summary": "A 4-5 sentence professional summary highlighting key achievements, expertise, and career trajectory",
+      "keySkills": ["skill1", "skill2", "skill3", "skill4", "skill5", "skill6"],
+      "highlights": ["achievement1", "achievement2", "achievement3", "achievement4"],
+      "professionalLevel": "Junior|Mid-Level|Senior|Lead|Principal",
+      "strengthAreas": ["area1", "area2", "area3"],
+      "careerTrajectory": "Brief assessment of career growth and potential"
     }
 
     Base the professional level on:
-    - Junior: 0-2 years, few repos, basic projects
-    - Mid-Level: 2-5 years, moderate activity, some notable projects
-    - Senior: 5+ years, high activity, significant contributions, mentoring
-    - Lead: Senior + leadership, architectural decisions, team influence
+    - Junior: 0-2 years, few repos, basic projects, <50 LeetCode problems
+    - Mid-Level: 2-5 years, moderate activity, some notable projects, 50-200 problems
+    - Senior: 5+ years, high activity, significant contributions, >200 problems, mentoring evidence
+    - Lead: Senior + leadership indicators, architectural decisions, team influence
     - Principal: Lead + industry recognition, open source leadership, technical vision
+
+    Consider:
+    - GitHub activity and project quality
+    - LeetCode problem-solving consistency
+    - LinkedIn professional progression
+    - Technical depth vs breadth
+    - Community involvement and mentoring
 
     Ensure the response is valid JSON and professionally written for recruiters.
     `;
@@ -89,28 +118,68 @@ class AIService {
     } catch (error) {
       console.error('Error generating AI summary:', error);
       
-      // Fallback summary based on GitHub data
+      // Enhanced fallback summary
+      const leetcodeLevel = leetcodeData ? this.assessLeetCodeLevel(leetcodeData) : '';
+      const githubLevel = this.assessGitHubLevel(githubData);
+      
       return {
-        headline: `${githubData.user.name || githubData.user.login} - Software Developer`,
-        summary: `Experienced developer with ${githubData.contributionYears} years of contribution history and ${githubData.user.public_repos} public repositories. Specializes in ${Object.keys(githubData.languages)[0] || 'multiple programming languages'} with ${githubData.totalStars} total stars across projects.`,
-        keySkills: Object.keys(githubData.languages).slice(0, 5),
+        headline: `${githubData.user.name || githubData.user.login} - ${githubLevel} Developer`,
+        summary: `Experienced developer with ${githubData.contributionYears} years of contribution history and ${githubData.user.public_repos} public repositories. Specializes in ${Object.keys(githubData.languages)[0] || 'multiple programming languages'} with ${githubData.totalStars} total stars across projects.${leetcodeData ? ` Demonstrates strong algorithmic skills with ${leetcodeData.problemsSolved.solvedProblem} problems solved on LeetCode.` : ''}`,
+        keySkills: [
+          ...Object.keys(githubData.languages).slice(0, 4),
+          'Problem Solving',
+          'Software Development'
+        ],
         highlights: [
           `${githubData.totalStars} total GitHub stars`,
           `${githubData.user.public_repos} public repositories`,
-          `${githubData.user.followers} GitHub followers`
+          `${githubData.user.followers} GitHub followers`,
+          ...(leetcodeData ? [`${leetcodeData.problemsSolved.solvedProblem} LeetCode problems solved`] : [])
         ],
-        professionalLevel: this.determineProfessionalLevel(githubData),
+        professionalLevel: this.determineProfessionalLevel(githubData, leetcodeData),
+        strengthAreas: ['Software Development', 'Code Quality', 'Technical Problem Solving'],
+        careerTrajectory: 'Growing developer with consistent technical contributions',
       };
     }
   }
 
-  private determineProfessionalLevel(githubData: any): 'Junior' | 'Mid-Level' | 'Senior' | 'Lead' | 'Principal' {
+  private assessLeetCodeLevel(leetcodeData: any): string {
+    const solved = leetcodeData.problemsSolved.solvedProblem;
+    if (solved > 500) return 'Advanced Algorithmic';
+    if (solved > 200) return 'Strong Algorithmic';
+    if (solved > 50) return 'Developing Algorithmic';
+    return 'Beginning Algorithmic';
+  }
+
+  private assessGitHubLevel(githubData: any): string {
     const { contributionYears, totalStars, user } = githubData;
+    if (contributionYears >= 5 && totalStars > 100) return 'Senior';
+    if (contributionYears >= 3 && user.public_repos > 15) return 'Mid-Level';
+    return 'Junior';
+  }
+
+  private determineProfessionalLevel(githubData: any, leetcodeData?: any): 'Junior' | 'Mid-Level' | 'Senior' | 'Lead' | 'Principal' {
+    const { contributionYears, totalStars, user } = githubData;
+    const leetcodeSolved = leetcodeData?.problemsSolved?.solvedProblem || 0;
     
-    if (contributionYears >= 8 && totalStars > 500 && user.followers > 100) return 'Principal';
-    if (contributionYears >= 6 && totalStars > 200 && user.followers > 50) return 'Lead';
-    if (contributionYears >= 4 && totalStars > 50 && user.public_repos > 20) return 'Senior';
-    if (contributionYears >= 2 && user.public_repos > 10) return 'Mid-Level';
+    // Enhanced scoring system
+    let score = 0;
+    
+    // GitHub contributions
+    score += Math.min(contributionYears * 2, 10);
+    score += Math.min(totalStars / 10, 10);
+    score += Math.min(user.public_repos / 5, 8);
+    score += Math.min(user.followers / 10, 6);
+    
+    // LeetCode contributions
+    if (leetcodeSolved > 0) {
+      score += Math.min(leetcodeSolved / 20, 8);
+    }
+    
+    if (score >= 35) return 'Principal';
+    if (score >= 25) return 'Lead';
+    if (score >= 18) return 'Senior';
+    if (score >= 10) return 'Mid-Level';
     return 'Junior';
   }
 }

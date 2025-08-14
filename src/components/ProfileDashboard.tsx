@@ -1,3 +1,4 @@
+
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,16 +17,29 @@ import {
   ExternalLink
 } from "lucide-react";
 import { GitHubStats } from "@/services/githubService";
+import { LinkedInProfile } from "@/services/linkedinService";
+import { LeetCodeStats } from "@/services/leetcodeService";
 import { ProfileSummary } from "@/services/aiService";
+import { LeetCodeSection } from "./LeetCodeSection";
+import { LinkedInSection } from "./LinkedInSection";
 
 interface ProfileDashboardProps {
   githubData: GitHubStats;
+  linkedinData?: LinkedInProfile;
+  leetcodeData?: LeetCodeStats;
   aiSummary: ProfileSummary;
   onExport: () => void;
   onShare: () => void;
 }
 
-export const ProfileDashboard = ({ githubData, aiSummary, onExport, onShare }: ProfileDashboardProps) => {
+export const ProfileDashboard = ({ 
+  githubData, 
+  linkedinData, 
+  leetcodeData, 
+  aiSummary, 
+  onExport, 
+  onShare 
+}: ProfileDashboardProps) => {
   const { user, repos, languages, totalStars, totalForks } = githubData;
 
   const topLanguages = Object.entries(languages)
@@ -102,11 +116,16 @@ export const ProfileDashboard = ({ githubData, aiSummary, onExport, onShare }: P
               <p className="text-muted-foreground leading-relaxed text-lg mb-4">
                 {aiSummary.summary}
               </p>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 mb-4">
                 <Badge variant="secondary" className="text-sm">
                   {aiSummary.professionalLevel} Developer
                 </Badge>
               </div>
+              {aiSummary.careerTrajectory && (
+                <p className="text-sm text-muted-foreground">
+                  <strong>Career Trajectory:</strong> {aiSummary.careerTrajectory}
+                </p>
+              )}
             </Card>
 
             {/* Quick Stats */}
@@ -143,6 +162,12 @@ export const ProfileDashboard = ({ githubData, aiSummary, onExport, onShare }: P
                 <div className="text-sm text-muted-foreground">Followers</div>
               </Card>
             </div>
+
+            {/* LeetCode Section */}
+            {leetcodeData && <LeetCodeSection data={leetcodeData} />}
+
+            {/* LinkedIn Section */}
+            {linkedinData && <LinkedInSection data={linkedinData} />}
 
             {/* Top Repositories */}
             <Card className="p-6 bg-gradient-card shadow-professional-md">
@@ -206,6 +231,20 @@ export const ProfileDashboard = ({ githubData, aiSummary, onExport, onShare }: P
               </div>
             </Card>
 
+            {/* Strength Areas */}
+            {aiSummary.strengthAreas && aiSummary.strengthAreas.length > 0 && (
+              <Card className="p-6 bg-gradient-card shadow-professional-md">
+                <h3 className="text-xl font-bold mb-4">Strength Areas</h3>
+                <div className="flex flex-wrap gap-2">
+                  {aiSummary.strengthAreas.map((area) => (
+                    <Badge key={area} variant="outline" className="text-sm">
+                      {area}
+                    </Badge>
+                  ))}
+                </div>
+              </Card>
+            )}
+
             {/* Programming Languages */}
             <Card className="p-6 bg-gradient-card shadow-professional-md">
               <h3 className="text-xl font-bold mb-4">Programming Languages</h3>
@@ -245,6 +284,30 @@ export const ProfileDashboard = ({ githubData, aiSummary, onExport, onShare }: P
                   <Github className="h-5 w-5" />
                   <span>GitHub Profile</span>
                 </a>
+                
+                {linkedinData && (
+                  <a
+                    href={`https://linkedin.com/in/${linkedinData.name.toLowerCase().replace(' ', '-')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 p-2 rounded-lg hover:bg-secondary transition-colors"
+                  >
+                    <Linkedin className="h-5 w-5" />
+                    <span>LinkedIn Profile</span>
+                  </a>
+                )}
+
+                {leetcodeData && (
+                  <a
+                    href={`https://leetcode.com/u/${leetcodeData.username}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 p-2 rounded-lg hover:bg-secondary transition-colors"
+                  >
+                    <Code2 className="h-5 w-5" />
+                    <span>LeetCode Profile</span>
+                  </a>
+                )}
                 
                 {user.blog && (
                   <a
