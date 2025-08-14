@@ -131,8 +131,6 @@ const Index = () => {
         linkedinData={userData.linkedin}
         leetcodeData={userData.leetcode}
         aiSummary={userData.aiSummary}
-        onExport={handleExport}
-        onShare={handleShare}
       />
     );
   }

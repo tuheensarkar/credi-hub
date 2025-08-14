@@ -22,23 +22,20 @@ import { LeetCodeStats } from "@/services/leetcodeService";
 import { ProfileSummary } from "@/services/aiService";
 import { LeetCodeSection } from "./LeetCodeSection";
 import { LinkedInSection } from "./LinkedInSection";
+import { ExportButton } from "./ExportButton";
 
 interface ProfileDashboardProps {
   githubData: GitHubStats;
   linkedinData?: LinkedInProfile;
   leetcodeData?: LeetCodeStats;
   aiSummary: ProfileSummary;
-  onExport: () => void;
-  onShare: () => void;
 }
 
 export const ProfileDashboard = ({ 
   githubData, 
   linkedinData, 
   leetcodeData, 
-  aiSummary, 
-  onExport, 
-  onShare 
+  aiSummary
 }: ProfileDashboardProps) => {
   const { user, repos, languages, totalStars, totalForks } = githubData;
 
@@ -84,24 +81,7 @@ export const ProfileDashboard = ({
               </div>
             </div>
 
-            <div className="flex gap-3">
-              <Button
-                variant="hero"
-                onClick={onExport}
-                className="bg-white text-primary hover:bg-blue-50"
-              >
-                <Download className="h-4 w-4 mr-2" />
-                Export PDF
-              </Button>
-              <Button
-                variant="outline"
-                onClick={onShare}
-                className="border-white text-white hover:bg-white hover:text-primary"
-              >
-                <Share2 className="h-4 w-4 mr-2" />
-                Share
-              </Button>
-            </div>
+            <ExportButton profileData={{ github: githubData, linkedin: linkedinData, leetcode: leetcodeData, ai: aiSummary }} />
           </div>
         </div>
       </div>

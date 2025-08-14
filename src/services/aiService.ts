@@ -9,6 +9,26 @@ export interface ProfileSummary {
   professionalLevel: 'Junior' | 'Mid-Level' | 'Senior' | 'Lead' | 'Principal';
   strengthAreas: string[];
   careerTrajectory: string;
+  categorizedSkills: {
+    frontend: string[];
+    backend: string[];
+    database: string[];
+    devops: string[];
+    mobile: string[];
+    algorithms: string[];
+  };
+  projectInsights: {
+    topProjects: Array<{
+      name: string;
+      insight: string;
+      technologies: string[];
+    }>;
+  };
+  competitiveProgrammingInsights: {
+    strongAreas: string[];
+    improvementAreas: string[];
+    overallAssessment: string;
+  };
 }
 
 class AIService {
@@ -80,7 +100,29 @@ class AIService {
       "highlights": ["achievement1", "achievement2", "achievement3", "achievement4"],
       "professionalLevel": "Junior|Mid-Level|Senior|Lead|Principal",
       "strengthAreas": ["area1", "area2", "area3"],
-      "careerTrajectory": "Brief assessment of career growth and potential"
+      "careerTrajectory": "Brief assessment of career growth and potential",
+      "categorizedSkills": {
+        "frontend": ["React", "TypeScript", "JavaScript"],
+        "backend": ["Node.js", "Python", "API Development"],
+        "database": ["SQL", "NoSQL", "Database Design"],
+        "devops": ["Docker", "CI/CD", "Cloud Services"],
+        "mobile": ["React Native", "Flutter"],
+        "algorithms": ["Data Structures", "Problem Solving"]
+      },
+      "projectInsights": {
+        "topProjects": [
+          {
+            "name": "Project Name",
+            "insight": "Brief insight about the project's significance",
+            "technologies": ["tech1", "tech2"]
+          }
+        ]
+      },
+      "competitiveProgrammingInsights": {
+        "strongAreas": ["Arrays", "Dynamic Programming"],
+        "improvementAreas": ["Graph Algorithms", "Advanced Trees"],
+        "overallAssessment": "Assessment of competitive programming journey"
+      }
     }
 
     Base the professional level on:
@@ -139,6 +181,9 @@ class AIService {
         professionalLevel: this.determineProfessionalLevel(githubData, leetcodeData),
         strengthAreas: ['Software Development', 'Code Quality', 'Technical Problem Solving'],
         careerTrajectory: 'Growing developer with consistent technical contributions',
+        categorizedSkills: this.categorizeSkills(Object.keys(githubData.languages)),
+        projectInsights: this.extractProjectInsights(githubData.repos),
+        competitiveProgrammingInsights: this.analyzeLeetCodeInsights(leetcodeData),
       };
     }
   }
@@ -181,6 +226,88 @@ class AIService {
     if (score >= 18) return 'Senior';
     if (score >= 10) return 'Mid-Level';
     return 'Junior';
+  }
+
+  private categorizeSkills(languages: string[]) {
+    const skillMap = {
+      frontend: ['JavaScript', 'TypeScript', 'React', 'Vue', 'Angular', 'HTML', 'CSS', 'SCSS', 'Sass'],
+      backend: ['Python', 'Java', 'C#', 'C++', 'C', 'Go', 'Rust', 'Ruby', 'PHP', 'Node.js'],
+      database: ['SQL', 'MongoDB', 'PostgreSQL', 'MySQL', 'Redis', 'SQLite'],
+      devops: ['Docker', 'Kubernetes', 'AWS', 'Azure', 'GCP', 'Jenkins', 'GitLab'],
+      mobile: ['Swift', 'Kotlin', 'React Native', 'Flutter', 'Dart'],
+      algorithms: ['Python', 'C++', 'Java', 'C', 'JavaScript'],
+    };
+
+    const categorized = {
+      frontend: [],
+      backend: [],
+      database: [],
+      devops: [],
+      mobile: [],
+      algorithms: [],
+    };
+
+    languages.forEach(lang => {
+      Object.keys(skillMap).forEach(category => {
+        if (skillMap[category].includes(lang)) {
+          categorized[category].push(lang);
+        }
+      });
+    });
+
+    return categorized;
+  }
+
+  private extractProjectInsights(repos: any[]) {
+    const topProjects = repos.slice(0, 3).map(repo => ({
+      name: repo.name,
+      insight: `${repo.stargazers_count} stars - ${repo.description || 'Innovative project showcasing technical skills'}`,
+      technologies: [repo.language || 'Mixed'].filter(Boolean),
+    }));
+
+    return { topProjects };
+  }
+
+  private analyzeLeetCodeInsights(leetcodeData?: any) {
+    if (!leetcodeData || !leetcodeData.problemsSolved.solvedProblem) {
+      return {
+        strongAreas: ['Starting competitive programming journey'],
+        improvementAreas: ['Problem solving practice', 'Algorithm implementation'],
+        overallAssessment: 'Beginning algorithmic problem solving journey',
+      };
+    }
+
+    const { problemsSolved } = leetcodeData;
+    const strongAreas = [];
+    const improvementAreas = [];
+
+    if (problemsSolved.easySolved > problemsSolved.mediumSolved) {
+      strongAreas.push('Basic algorithms and data structures');
+    }
+    if (problemsSolved.mediumSolved > 0) {
+      strongAreas.push('Intermediate problem solving');
+    }
+    if (problemsSolved.hardSolved > 0) {
+      strongAreas.push('Advanced algorithmic thinking');
+    }
+
+    if (problemsSolved.mediumSolved < problemsSolved.easySolved / 2) {
+      improvementAreas.push('Medium complexity problems');
+    }
+    if (problemsSolved.hardSolved === 0) {
+      improvementAreas.push('Advanced algorithm design');
+    }
+
+    const totalSolved = problemsSolved.solvedProblem;
+    let assessment = 'Growing problem solver';
+    if (totalSolved > 100) assessment = 'Strong algorithmic foundation';
+    if (totalSolved > 300) assessment = 'Advanced competitive programmer';
+
+    return {
+      strongAreas: strongAreas.length ? strongAreas : ['Developing algorithmic skills'],
+      improvementAreas: improvementAreas.length ? improvementAreas : ['Continue problem solving practice'],
+      overallAssessment: assessment,
+    };
   }
 }
 
